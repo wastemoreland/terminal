@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TERMINAL BRIEF 2026 | FLUID</title>
+    <title>TERMINAL</title>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -101,21 +101,21 @@
         /* --- WAR OVERLAY --- */
         #war-overlay {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: radial-gradient(ellipse at center, rgba(220, 30, 30, 0.18) 0%, rgba(140, 0, 0, 0.42) 60%, rgba(80, 0, 0, 0.55) 100%);
+            background: radial-gradient(ellipse at center, rgba(200, 20, 20, 0.08) 0%, rgba(120, 0, 0, 0.22) 65%, rgba(60, 0, 0, 0.30) 100%);
             pointer-events: none; z-index: 9998; opacity: 0;
             transition: opacity 1.2s ease-in-out; mix-blend-mode: multiply;
         }
         [data-theme="dark"] #war-overlay {
-            background: radial-gradient(ellipse at center, rgba(255, 60, 60, 0.12) 0%, rgba(180, 20, 20, 0.28) 60%, rgba(100, 0, 0, 0.38) 100%);
+            background: radial-gradient(ellipse at center, rgba(255, 50, 50, 0.07) 0%, rgba(160, 10, 10, 0.16) 65%, rgba(80, 0, 0, 0.22) 100%);
             mix-blend-mode: screen;
         }
         #war-overlay.active {
             opacity: 1;
-            animation: warPulse 4s ease-in-out infinite;
+            animation: warPulse 5s ease-in-out infinite;
         }
         @keyframes warPulse {
             0%, 100% { opacity: 1; }
-            50% { opacity: 0.75; }
+            50% { opacity: 0.65; }
         }
 
         /* --- UI LAYOUT --- */
@@ -221,6 +221,118 @@
         }
         #theme-toggle:hover { background: var(--text); color: var(--bg); }
 
+
+        /* ============================================
+           MOBILE RESPONSIVE LAYOUT
+           ============================================ */
+        
+        /* Mobile bottom nav bar */
+        #mobile-nav {
+            display: none;
+            position: fixed; bottom: 0; left: 0; right: 0;
+            background: var(--card-bg); backdrop-filter: blur(20px);
+            border-top: 1px solid var(--border);
+            z-index: 200; padding: 8px 4px;
+            justify-content: space-around; align-items: center;
+        }
+        
+        .mob-nav-btn {
+            background: none; border: none; color: var(--accent);
+            font-family: inherit; font-size: 9px; text-transform: uppercase;
+            letter-spacing: 0.05em; cursor: pointer; padding: 6px 10px;
+            border-radius: 8px; transition: all 0.2s; display: flex;
+            flex-direction: column; align-items: center; gap: 3px;
+            min-width: 52px;
+        }
+        .mob-nav-btn .mob-icon { font-size: 16px; line-height: 1; }
+        .mob-nav-btn.active { color: var(--text); background: var(--list-active); }
+        
+        /* Mobile back button inside content-area */
+        #mobile-back {
+            display: none; background: none; border: 1px solid var(--border);
+            color: var(--accent); font-family: inherit; font-size: 10px;
+            padding: 5px 10px; border-radius: 4px; cursor: pointer;
+            text-transform: uppercase; margin-bottom: 16px;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                flex-direction: column;
+                overflow: hidden;
+                height: 100dvh;
+            }
+            
+            aside {
+                width: 100%;
+                height: 100dvh;
+                border-right: none;
+                border-bottom: none;
+                padding: 20px 16px 80px 16px;
+                position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+                z-index: 30;
+                transform: translateX(0);
+                transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1),
+                            background 0.6s ease;
+            }
+            
+            aside.mob-hidden {
+                transform: translateX(-100%);
+                pointer-events: none;
+            }
+            
+            main {
+                position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+                padding: 16px 16px 80px 16px;
+                z-index: 25;
+                transform: translateX(100%);
+                transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+            }
+            
+            main.mob-visible {
+                transform: translateX(0);
+            }
+            
+            #content-area {
+                position: relative;
+                left: auto; top: auto;
+                width: 100%; max-width: 100%;
+                height: calc(100dvh - 80px);
+                transform: none !important;
+                opacity: 1 !important;
+                pointer-events: auto !important;
+                padding: 20px 16px;
+                border-radius: 12px;
+            }
+
+            #placeholder { display: none; }
+
+            #mobile-nav { display: flex; }
+            #mobile-back { display: inline-block; }
+            
+            /* Compact filters on mobile */
+            .filters { gap: 6px; margin-bottom: 20px; }
+            .filter-btn { font-size: 10px; padding: 5px 10px; }
+            
+            /* Clock smaller on mobile */
+            .timestamp { font-size: 10px; margin-bottom: 16px; }
+            
+            /* Tighter list items on mobile */
+            .list-item { padding: 12px 14px 12px 22px; }
+            
+            /* Hide desktop theme toggle on mobile, use nav bar one */
+            #theme-toggle { bottom: 72px; right: 16px; font-size: 9px; padding: 6px 12px; }
+            
+            h2 { font-size: 1.1rem; }
+            
+            #content-area.visible {
+                transform: none !important;
+            }
+        }
+        
+        @media (max-width: 400px) {
+            .filter-btn { font-size: 9px; padding: 4px 8px; }
+            .mob-nav-btn { font-size: 8px; min-width: 44px; }
+        }
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
         ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
@@ -236,7 +348,20 @@
 
 <div id="war-overlay"></div>
 
-<aside>
+<!-- MOBILE BOTTOM NAV -->
+<nav id="mobile-nav">
+    <button class="mob-nav-btn active" id="mob-list-btn" onclick="mobileShowList()">
+        <span class="mob-icon">≡</span>LIST
+    </button>
+    <button class="mob-nav-btn" id="mob-article-btn" onclick="mobileShowArticle()" style="opacity:0.4" disabled>
+        <span class="mob-icon">◈</span>ARTICLE
+    </button>
+    <button class="mob-nav-btn" onclick="toggleTheme()">
+        <span class="mob-icon" id="mob-theme-icon">◑</span>THEME
+    </button>
+</nav>
+
+<aside id="aside-panel">
     <div class="timestamp" id="live-clock">--/-- --:--</div>
     
     <div class="filters">
@@ -256,9 +381,10 @@
     </div>
 </aside>
 
-<main>
+<main id="main-panel">
     <div id="placeholder">_AWAITING_SELECTION</div>
     <div id="content-area">
+        <button id="mobile-back" onclick="mobileShowList()">← Back</button>
         <div id="inner-content">
             <div class="card-header">
                 <span class="section-label" id="view-meta" style="margin: 0;">DATE • AUTHOR</span>
@@ -309,7 +435,6 @@
     // --- TECH ---
     { category: 'TECH', name: '404 Media', url: 'https://www.404media.co/rss/' },
     { category: 'TECH', name: 'Platformer', url: 'https://www.platformer.news/rss/' },
-    { category: 'TECH', name: 'Stratechery', url: 'https://stratechery.com/feed/' },
     { category: 'TECH', name: 'Benedict Evans', url: 'https://www.ben-evans.com/rss/' },
     { category: 'TECH', name: 'Simon Willison', url: 'https://simonwillison.net/atom/entries/' },
     { category: 'TECH', name: 'Ars Technica', url: 'https://feeds.arstechnica.com/arstechnica/index' },
@@ -317,72 +442,69 @@
     { category: 'TECH', name: 'Wired', url: 'https://www.wired.com/feed/rss' },
     { category: 'TECH', name: 'The Verge', url: 'https://www.theverge.com/rss/index.xml' },
     { category: 'TECH', name: 'Hacker News', url: 'https://news.ycombinator.com/rss' },
-    { category: 'TECH', name: 'Superhuman AI', url: 'https://www.superhuman.ai/feed' },
-    { category: 'TECH', name: 'UiPath', url: 'https://www.uipath.com/blog/rss' },
 
     // --- BRANDING ---
     { category: 'BRANDING', name: 'Brand New', url: 'https://www.underconsideration.com/brandnew/feed.xml' },
-    { category: 'BRANDING', name: 'Creative Review', url: 'https://www.creativereview.co.uk/feed/' },
     { category: 'BRANDING', name: 'BP&O', url: 'https://bpando.org/feed/' },
     { category: 'BRANDING', name: 'The Dieline', url: 'https://thedieline.com/feed/' },
     { category: 'BRANDING', name: "It's Nice That", url: 'https://www.itsnicethat.com/feeds/rss' },
-    { category: 'BRANDING', name: 'Logo Design Love', url: 'https://www.logodesignlove.com/feed' },
     { category: 'BRANDING', name: 'AIGA Eye on Design', url: 'https://eyeondesign.aiga.org/feed/' },
-    { category: 'BRANDING', name: 'Design Week', url: 'https://www.designweek.co.uk/feed/' },
     { category: 'BRANDING', name: 'Creative Boom', url: 'https://www.creativeboom.com/feed/' },
     { category: 'BRANDING', name: 'Abduzeedo', url: 'https://abduzeedo.com/rss.xml' },
 
     // --- MONEY ---
-    { category: 'MONEY', name: 'The Information', url: 'https://www.theinformation.com/feed' },
     { category: 'MONEY', name: 'Crunchbase', url: 'https://news.crunchbase.com/feed/' },
     { category: 'MONEY', name: 'Sifted', url: 'https://sifted.eu/feed/' },
     { category: 'MONEY', name: 'Indie Hackers', url: 'https://www.indiehackers.com/rss' },
-    { category: 'MONEY', name: 'CB Insights', url: 'https://www.cbinsights.com/research/feed/' },
     { category: 'MONEY', name: 'YC Blog', url: 'https://blog.ycombinator.com/rss/' },
-    { category: 'MONEY', name: 'First Round', url: 'https://review.firstround.com/feed.xml' },
+    { category: 'MONEY', name: 'First Round Review', url: 'https://review.firstround.com/feed.xml' },
     { category: 'MONEY', name: 'Tomasz Tunguz', url: 'https://tomtunguz.com/index.xml' },
     { category: 'MONEY', name: 'Andrew Chen', url: 'https://andrewchen.com/feed/' },
 
     // --- SCIENCE ---
     { category: 'SCIENCE', name: 'Quanta Magazine', url: 'https://www.quantamagazine.org/feed/' },
-    { category: 'SCIENCE', name: 'New Scientist', url: 'https://www.newscientist.com/feed/' },
     { category: 'SCIENCE', name: 'Scientific American', url: 'https://rss.sciam.com/ScientificAmerican-Global' },
     { category: 'SCIENCE', name: 'Science News', url: 'https://www.sciencenews.org/feed' },
-    { category: 'SCIENCE', name: 'Space.com', url: 'https://www.space.com/feeds/all' },
     { category: 'SCIENCE', name: 'ScienceDaily', url: 'https://www.sciencedaily.com/rss/all.xml' },
     { category: 'SCIENCE', name: 'MIT News', url: 'https://news.mit.edu/rss/feed' },
     { category: 'SCIENCE', name: 'Live Science', url: 'https://www.livescience.com/feeds/all' },
     { category: 'SCIENCE', name: 'Science Friday', url: 'https://www.sciencefriday.com/feed/' },
+    { category: 'SCIENCE', name: 'Space.com', url: 'https://www.space.com/feeds/all' },
+    { category: 'SCIENCE', name: 'NASA', url: 'https://www.nasa.gov/rss/dyn/breaking_news.rss' },
 
     // --- WAR ---
     { category: 'WAR', name: 'War on the Rocks', url: 'https://warontherocks.com/feed/' },
     { category: 'WAR', name: 'ISW', url: 'https://www.understandingwar.org/rss.xml' },
-    { category: 'WAR', name: 'Defense One', url: 'https://www.defenseone.com/rss/all/' },
     { category: 'WAR', name: 'Breaking Defense', url: 'https://breakingdefense.com/feed/' },
     { category: 'WAR', name: 'The Diplomat', url: 'https://thediplomat.com/feed/' },
-    { category: 'WAR', name: 'Small Wars Journal', url: 'https://smallwarsjournal.com/rss.xml' },
     { category: 'WAR', name: 'Defense News', url: 'https://www.defensenews.com/arc/outboundfeeds/rss/' },
     { category: 'WAR', name: 'Task & Purpose', url: 'https://taskandpurpose.com/feed/' },
     { category: 'WAR', name: 'RealClearDefense', url: 'https://www.realcleardefense.com/index.xml' },
+    { category: 'WAR', name: 'Foreign Affairs', url: 'https://www.foreignaffairs.com/rss.xml' },
 
     // --- SYSTEMS ---
-    { category: 'SYSTEMS', name: 'HeyDesigner', url: 'https://heydesigner.com/feed/' },
-    { category: 'SYSTEMS', name: 'Brad Frost', url: 'https://bradfrost.com/feed/' },
-    { category: 'SYSTEMS', name: 'CSS-Tricks', url: 'https://css-tricks.com/feed/' },
     { category: 'SYSTEMS', name: 'Smashing Magazine', url: 'https://www.smashingmagazine.com/feed/' },
+    { category: 'SYSTEMS', name: 'CSS-Tricks', url: 'https://css-tricks.com/feed/' },
+    { category: 'SYSTEMS', name: 'Brad Frost', url: 'https://bradfrost.com/feed/' },
     { category: 'SYSTEMS', name: 'A List Apart', url: 'https://alistapart.com/main/feed/' },
+    { category: 'SYSTEMS', name: 'UX Collective', url: 'https://uxdesign.cc/feed' },
+    { category: 'SYSTEMS', name: 'Nielsen Norman', url: 'https://www.nngroup.com/feed/rss/' },
 
     // --- CREATORS ---
-    { category: 'CREATORS', name: 'Creator Science', url: 'https://creatorscience.com/rss/' },
-    { category: 'CREATORS', name: 'Growth in Reverse', url: 'https://www.growthinreverse.com/rss/' },
-    { category: 'CREATORS', name: 'Substack Blog', url: 'https://blog.substack.com/feed' },
     { category: 'CREATORS', name: 'Ghost Blog', url: 'https://ghost.org/blog/rss/' },
+    { category: 'CREATORS', name: 'Substack Blog', url: 'https://substack.com/feed' },
+    { category: 'CREATORS', name: 'Buffer Blog', url: 'https://buffer.com/resources/rss/' },
+    { category: 'CREATORS', name: 'Later Blog', url: 'https://later.com/blog/feed/' },
+    { category: 'CREATORS', name: 'Copyblogger', url: 'https://copyblogger.com/feed/' },
+    { category: 'CREATORS', name: 'Social Media Examiner', url: 'https://www.socialmediaexaminer.com/feed/' },
 
     // --- FUTURE ---
     { category: 'FUTURE', name: 'MIT Tech Review', url: 'https://www.technologyreview.com/feed/' },
     { category: 'FUTURE', name: 'Singularity Hub', url: 'https://singularityhub.com/feed/' },
-    { category: 'FUTURE', name: 'Fast Company', url: 'https://www.fastcompany.com/latest/rss' },
-    { category: 'FUTURE', name: 'Aeon Magazine', url: 'https://aeon.co/feed.rss' }
+    { category: 'FUTURE', name: 'Aeon', url: 'https://aeon.co/feed.rss' },
+    { category: 'FUTURE', name: 'The Atlantic', url: 'https://www.theatlantic.com/feed/all/' },
+    { category: 'FUTURE', name: 'Nautilus', url: 'https://nautil.us/feed/' },
+    { category: 'FUTURE', name: 'Edge.org', url: 'https://www.edge.org/rss' }
 ];
 
     let newsData = [];
@@ -626,6 +748,44 @@
     setInterval(updateClock, 1000);
     updateClock();
     fetchRSSData();
+
+    // --- MOBILE NAV ---
+    const isMobile = () => window.innerWidth <= 768;
+
+    function mobileShowList() {
+        if (!isMobile()) return;
+        document.getElementById('aside-panel').classList.remove('mob-hidden');
+        document.getElementById('main-panel').classList.remove('mob-visible');
+        document.getElementById('mob-list-btn').classList.add('active');
+        document.getElementById('mob-article-btn').classList.remove('active');
+    }
+
+    function mobileShowArticle() {
+        if (!isMobile()) return;
+        document.getElementById('aside-panel').classList.add('mob-hidden');
+        document.getElementById('main-panel').classList.add('mob-visible');
+        document.getElementById('mob-list-btn').classList.remove('active');
+        document.getElementById('mob-article-btn').classList.add('active');
+    }
+
+    // Override showDetail to auto-navigate to article on mobile
+    const _origShowDetail = showDetail;
+    function showDetail(item, element) {
+        _origShowDetail(item, element);
+        if (isMobile()) {
+            const mobArticleBtn = document.getElementById('mob-article-btn');
+            mobArticleBtn.disabled = false;
+            mobArticleBtn.style.opacity = '1';
+            setTimeout(() => mobileShowArticle(), 50);
+        }
+    }
+
+    // Override closePanel to go back to list on mobile
+    const _origClosePanel = closePanel;
+    function closePanel() {
+        _origClosePanel();
+        if (isMobile()) mobileShowList();
+    }
 </script>
 </body>
 </html>

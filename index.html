@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TERMINAL BRIEF 2026 | FLUID</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* OFF-WHITE LIGHT THEME */
+            --bg: #F7F7F5;
+            --text: #333331;
+            --accent: #8A8A85;
+            --border: rgba(0, 0, 0, 0.08);
+            --unread: #111111;
+            
+            --aside-bg: linear-gradient(90deg, rgba(247, 247, 245, 0.85) 0%, rgba(247, 247, 245, 0.1) 100%);
+            --card-bg: rgba(250, 250, 248, 0.7);
+            --card-border: rgba(0, 0, 0, 0.04);
+            
+            --list-hover: rgba(0, 0, 0, 0.04);
+            --list-active: rgba(255, 255, 255, 0.8);
+            --btn-active: rgba(255, 255, 255, 0.9);
+            
+            --blob1: #EAEAEA;
+            --blob2: #E2E2DF;
+            --blob3: #DCDCDA;
+            
+            --noise-opacity: 0.03; /* Delikatny szum dla jasnego motywu */
+        }
+
+        [data-theme="dark"] {
+            /* DEEP DARK THEME */
+            --bg: #141414;
+            --text: #E0E0E0;
+            --accent: #7A7A7A;
+            --border: rgba(255, 255, 255, 0.08);
+            --unread: #FFFFFF;
+            
+            --aside-bg: linear-gradient(90deg, rgba(20, 20, 20, 0.9) 0%, rgba(20, 20, 20, 0.2) 100%);
+            --card-bg: rgba(30, 30, 30, 0.7);
+            --card-border: rgba(255, 255, 255, 0.05);
+            
+            --list-hover: rgba(255, 255, 255, 0.05);
+            --list-active: rgba(45, 45, 45, 0.9);
+            --btn-active: rgba(55, 55, 55, 0.9);
+            
+            --blob1: #1E1E1E;
+            --blob2: #1A1A1A;
+            --blob3: #222222;
+            
+            --noise-opacity: 0.07; /* Mocniejszy szum, by zabić posteryzację w ciemnym motywie */
+        }
+
+        [data-theme="dark"] .blob { display: none; }
+
+        * { box-sizing: border-box; }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: 'JetBrains Mono', monospace;
+            margin: 0;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+            font-size: 13px;
+            transition: background-color 0.6s ease, color 0.6s ease;
+        }
+
+        /* --- FLUID LAVA LAMP BACKGROUND --- */
+        .ambient-bg { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -1; overflow: hidden; background: var(--bg); transition: background 0.6s ease; }
+        
+        /* FIX POSTERYZACJI: SVG Noise Dithering */
+        .ambient-bg::after {
+            content: "";
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+            opacity: var(--noise-opacity);
+            pointer-events: none;
+            mix-blend-mode: overlay;
+            z-index: 1;
+        }
+
+        .blob { 
+            position: absolute; border-radius: 50%; filter: blur(70px); opacity: 0.8; 
+            animation: float 25s infinite alternate ease-in-out; transition: background 0.6s ease; 
+            will-change: transform; /* Hint dla przeglądarki */
+        }
+        .blob-1 { width: 45vw; height: 45vw; background: var(--blob1); top: -10vh; left: -10vw; }
+        .blob-2 { width: 60vw; height: 60vw; background: var(--blob2); bottom: -20vh; right: -15vw; animation-duration: 35s; animation-direction: alternate-reverse; }
+        .blob-3 { width: 40vw; height: 40vw; background: var(--blob3); top: 30vh; left: 40vw; animation-duration: 40s; }
+
+        /* Użycie translate3d wymusza akcelerację sprzętową i gładkie renderowanie */
+        @keyframes float {
+            0% { transform: translate3d(0, 0, 0) scale(1); }
+            50% { transform: translate3d(8vw, 12vh, 0) scale(1.05); }
+            100% { transform: translate3d(-5vw, 8vh, 0) scale(0.95); }
+        }
+
+        /* --- WAR OVERLAY --- */
+        #war-overlay {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: radial-gradient(ellipse at center, rgba(220, 30, 30, 0.18) 0%, rgba(140, 0, 0, 0.42) 60%, rgba(80, 0, 0, 0.55) 100%);
+            pointer-events: none; z-index: 9998; opacity: 0;
+            transition: opacity 1.2s ease-in-out; mix-blend-mode: multiply;
+        }
+        [data-theme="dark"] #war-overlay {
+            background: radial-gradient(ellipse at center, rgba(255, 60, 60, 0.12) 0%, rgba(180, 20, 20, 0.28) 60%, rgba(100, 0, 0, 0.38) 100%);
+            mix-blend-mode: screen;
+        }
+        #war-overlay.active {
+            opacity: 1;
+            animation: warPulse 4s ease-in-out infinite;
+        }
+        @keyframes warPulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.75; }
+        }
+
+        /* --- UI LAYOUT --- */
+        aside {
+            width: 420px; padding: 40px; overflow-y: auto; border-right: 1px solid var(--border);
+            display: flex; flex-direction: column; background: var(--aside-bg);
+            backdrop-filter: blur(15px); z-index: 20; 
+            box-shadow: 10px 0 30px rgba(0,0,0,0.02);
+            transition: background 0.6s ease, border-color 0.6s ease;
+        }
+
+        .timestamp { font-size: 11px; color: var(--accent); letter-spacing: 0.1em; margin-bottom: 30px; }
+
+        .filters { display: flex; gap: 8px; margin-bottom: 30px; flex-wrap: wrap; }
+        .filter-btn {
+            background: transparent; border: 1px solid var(--border); color: var(--accent); padding: 6px 12px;
+            font-family: inherit; font-size: 11px; border-radius: 20px; cursor: pointer; transition: all 0.3s ease;
+        }
+        .filter-btn:hover { border-color: var(--text); color: var(--text); }
+        .filter-btn.active { color: var(--text); border-color: var(--text); background: var(--btn-active); box-shadow: 0 4px 15px rgba(0,0,0,0.03); }
+
+        .news-list { display: flex; flex-direction: column; gap: 4px; }
+        .list-item {
+            padding: 14px 16px 14px 24px; border-radius: 12px; transition: all 0.3s ease; display: block; color: inherit; cursor: pointer;
+            opacity: 0; transform: translateY(10px); animation: slideUpFade 0.5s ease forwards; position: relative;
+        }
+        .list-item:hover { background: var(--list-hover); transform: translateX(5px); }
+        .list-item.active { background: var(--list-active); box-shadow: 0 8px 25px rgba(0,0,0,0.04); transform: translateX(8px); }
+        
+        .list-item.unread::before {
+            content: ''; position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
+            width: 5px; height: 5px; background: var(--unread); border-radius: 50%;
+        }
+        .list-item.unread .item-title { font-weight: 500; color: var(--unread); }
+        
+        .list-item.bookmarked::after {
+            content: '★'; position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+            font-size: 10px; color: var(--text); opacity: 0.5;
+        }
+
+        @keyframes slideUpFade { to { opacity: 1; transform: translateY(0); } }
+
+        /* --- MAIN PANEL (CARD STYLE) --- */
+        main {
+            flex: 1; padding: 40px; position: relative; z-index: 5; overflow: hidden;
+        }
+        
+        #placeholder { 
+            color: var(--accent); position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); 
+            transition: opacity 0.6s ease; letter-spacing: 0.05em; 
+        }
+        
+        #content-area {
+            background: var(--card-bg); backdrop-filter: blur(25px); border: 1px solid var(--card-border);
+            border-radius: 20px; padding: 40px; box-shadow: 0 15px 40px rgba(0,0,0,0.05);
+            max-width: 650px; width: 100%; height: calc(100vh - 80px); overflow-y: auto;
+            position: absolute; left: 40px; top: 40px;
+            opacity: 0; transform: translateX(-150px); 
+            transition: opacity 0.5s ease, transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1), background 0.6s ease;
+            pointer-events: none;
+        }
+        #content-area.visible { opacity: 1; transform: translateX(0); pointer-events: auto; }
+
+        /* INNER CONTENT (FOR CROSSFADING BETWEEN ARTICLES) */
+        #inner-content {
+            opacity: 1; transform: translateY(0);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+        #inner-content.fade-out {
+            opacity: 0; transform: translateY(15px);
+        }
+
+        .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
+        .action-btns { display: flex; gap: 10px; }
+        .action-btn { 
+            background: none; border: 1px solid var(--border); border-radius: 4px; color: var(--accent); 
+            font-family: inherit; font-size: 10px; padding: 4px 8px; cursor: pointer; transition: all 0.2s; text-transform: uppercase;
+        }
+        .action-btn:hover { color: var(--text); border-color: var(--text); }
+        .action-btn.del:hover { color: #d9534f; border-color: #d9534f; }
+
+        .close-btn { font-size: 24px; background: none; border: none; color: var(--accent); cursor: pointer; transition: all 0.3s ease; line-height: 1; padding: 0;}
+        .close-btn:hover { color: var(--text); transform: rotate(90deg); }
+
+        h2 { font-weight: 500; font-size: 1.3rem; margin-bottom: 30px; line-height: 1.4; color: var(--text); transition: color 0.6s ease;}
+        .section-label { font-size: 10px; text-transform: uppercase; color: var(--accent); margin-top: 35px; display: block; border-bottom: 1px solid var(--border); padding-bottom: 8px; margin-bottom: 15px; }
+        
+        .summary-box, .summary-box * { font-family: 'JetBrains Mono', monospace !important; line-height: 1.6; color: var(--text); }
+        .summary-box img { display: none !important; } 
+        
+        #view-image {
+            max-width: 100%; height: auto; border-radius: 8px; margin: 15px 0;
+            filter: grayscale(100%) contrast(1.1); transition: filter 0.5s ease;
+        }
+        #view-image:hover { filter: grayscale(0%) contrast(1); }
+
+        /* THEME TOGGLE BUTTON */
+        #theme-toggle {
+            position: fixed; bottom: 30px; right: 30px; z-index: 100;
+            background: var(--card-bg); border: 1px solid var(--border); color: var(--text);
+            padding: 8px 16px; border-radius: 30px; font-family: inherit; font-size: 10px;
+            cursor: pointer; backdrop-filter: blur(10px); transition: all 0.3s ease; text-transform: uppercase;
+        }
+        #theme-toggle:hover { background: var(--text); color: var(--bg); }
+
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+    </style>
+</head>
+<body>
+
+<div class="ambient-bg">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+</div>
+
+<div id="war-overlay"></div>
+
+<aside>
+    <div class="timestamp" id="live-clock">--/-- --:--</div>
+    
+    <div class="filters">
+        <button class="filter-btn" onclick="toggleCategory('TECH')">TECH</button>
+        <button class="filter-btn" onclick="toggleCategory('BRANDING')">BRANDING</button>
+        <button class="filter-btn" onclick="toggleCategory('MONEY')">MONEY</button>
+        <button class="filter-btn" onclick="toggleCategory('SCIENCE')">SCIENCE</button>
+        <button class="filter-btn" onclick="toggleCategory('WAR')">WAR</button>
+        <button class="filter-btn" onclick="toggleCategory('SYSTEMS')">SYSTEMS</button>
+        <button class="filter-btn" onclick="toggleCategory('CREATORS')">CREATORS</button>
+        <button class="filter-btn" onclick="toggleCategory('FUTURE')">FUTURE</button>
+        <button class="filter-btn" onclick="toggleCategory('BOOKMARKS')" style="border-style: dashed;">BOOKMARKS</button>
+    </div>
+
+    <div class="news-list" id="news-container">
+        <div style="font-size: 11px; color: var(--accent); margin-top: 20px;">Fetching global feeds...</div>
+    </div>
+</aside>
+
+<main>
+    <div id="placeholder">_AWAITING_SELECTION</div>
+    <div id="content-area">
+        <div id="inner-content">
+            <div class="card-header">
+                <span class="section-label" id="view-meta" style="margin: 0;">DATE • AUTHOR</span>
+                <div class="action-btns">
+                    <button class="action-btn" id="btn-bookmark" onclick="toggleBookmarkCurrent()">BOOKMARK</button>
+                    <button class="action-btn del" onclick="deleteCurrent()">DELETE</button>
+                    <button class="close-btn" onclick="closePanel()">×</button>
+                </div>
+            </div>
+            
+            <h2 id="view-title"></h2>
+            <img id="view-image" src="" alt="Cover" style="display: none;">
+
+            <span class="section-label">Content</span>
+            <div class="summary-box" id="view-summary"></div>
+
+            <span class="section-label">Source</span>
+            <a href="#" id="view-link" target="_blank" style="color: var(--text); text-decoration: none; border-bottom: 1px solid var(--text); padding-bottom: 2px;">[Read full brief]</a>
+        </div>
+    </div>
+</main>
+
+<button id="theme-toggle" onclick="toggleTheme()">DARK MODE</button>
+
+<script>
+    // --- THEME INIT ---
+    if(localStorage.getItem('fluidTheme') === 'dark') {
+        document.body.setAttribute('data-theme', 'dark');
+        document.getElementById('theme-toggle').innerText = 'LIGHT MODE';
+    }
+
+    function toggleTheme() {
+        const body = document.body;
+        const btn = document.getElementById('theme-toggle');
+        if(body.getAttribute('data-theme') === 'dark') {
+            body.removeAttribute('data-theme');
+            btn.innerText = 'DARK MODE';
+            localStorage.setItem('fluidTheme', 'light');
+        } else {
+            body.setAttribute('data-theme', 'dark');
+            btn.innerText = 'LIGHT MODE';
+            localStorage.setItem('fluidTheme', 'dark');
+        }
+    }
+
+    // --- RSS LOGIC ---
+    const SOURCES = [
+    // --- TECH ---
+    { category: 'TECH', name: '404 Media', url: 'https://www.404media.co/rss/' },
+    { category: 'TECH', name: 'Platformer', url: 'https://www.platformer.news/rss/' },
+    { category: 'TECH', name: 'Stratechery', url: 'https://stratechery.com/feed/' },
+    { category: 'TECH', name: 'Benedict Evans', url: 'https://www.ben-evans.com/rss/' },
+    { category: 'TECH', name: 'Simon Willison', url: 'https://simonwillison.net/atom/entries/' },
+    { category: 'TECH', name: 'Ars Technica', url: 'https://feeds.arstechnica.com/arstechnica/index' },
+    { category: 'TECH', name: 'Pluralistic', url: 'https://pluralistic.net/feed/' },
+    { category: 'TECH', name: 'Wired', url: 'https://www.wired.com/feed/rss' },
+    { category: 'TECH', name: 'The Verge', url: 'https://www.theverge.com/rss/index.xml' },
+    { category: 'TECH', name: 'Hacker News', url: 'https://news.ycombinator.com/rss' },
+    { category: 'TECH', name: 'Superhuman AI', url: 'https://www.superhuman.ai/feed' },
+    { category: 'TECH', name: 'UiPath', url: 'https://www.uipath.com/blog/rss' },
+
+    // --- BRANDING ---
+    { category: 'BRANDING', name: 'Brand New', url: 'https://www.underconsideration.com/brandnew/feed.xml' },
+    { category: 'BRANDING', name: 'Creative Review', url: 'https://www.creativereview.co.uk/feed/' },
+    { category: 'BRANDING', name: 'BP&O', url: 'https://bpando.org/feed/' },
+    { category: 'BRANDING', name: 'The Dieline', url: 'https://thedieline.com/feed/' },
+    { category: 'BRANDING', name: "It's Nice That", url: 'https://www.itsnicethat.com/feeds/rss' },
+    { category: 'BRANDING', name: 'Logo Design Love', url: 'https://www.logodesignlove.com/feed' },
+    { category: 'BRANDING', name: 'AIGA Eye on Design', url: 'https://eyeondesign.aiga.org/feed/' },
+    { category: 'BRANDING', name: 'Design Week', url: 'https://www.designweek.co.uk/feed/' },
+    { category: 'BRANDING', name: 'Creative Boom', url: 'https://www.creativeboom.com/feed/' },
+    { category: 'BRANDING', name: 'Abduzeedo', url: 'https://abduzeedo.com/rss.xml' },
+
+    // --- MONEY ---
+    { category: 'MONEY', name: 'The Information', url: 'https://www.theinformation.com/feed' },
+    { category: 'MONEY', name: 'Crunchbase', url: 'https://news.crunchbase.com/feed/' },
+    { category: 'MONEY', name: 'Sifted', url: 'https://sifted.eu/feed/' },
+    { category: 'MONEY', name: 'Indie Hackers', url: 'https://www.indiehackers.com/rss' },
+    { category: 'MONEY', name: 'CB Insights', url: 'https://www.cbinsights.com/research/feed/' },
+    { category: 'MONEY', name: 'YC Blog', url: 'https://blog.ycombinator.com/rss/' },
+    { category: 'MONEY', name: 'First Round', url: 'https://review.firstround.com/feed.xml' },
+    { category: 'MONEY', name: 'Tomasz Tunguz', url: 'https://tomtunguz.com/index.xml' },
+    { category: 'MONEY', name: 'Andrew Chen', url: 'https://andrewchen.com/feed/' },
+
+    // --- SCIENCE ---
+    { category: 'SCIENCE', name: 'Quanta Magazine', url: 'https://www.quantamagazine.org/feed/' },
+    { category: 'SCIENCE', name: 'New Scientist', url: 'https://www.newscientist.com/feed/' },
+    { category: 'SCIENCE', name: 'Scientific American', url: 'https://rss.sciam.com/ScientificAmerican-Global' },
+    { category: 'SCIENCE', name: 'Science News', url: 'https://www.sciencenews.org/feed' },
+    { category: 'SCIENCE', name: 'Space.com', url: 'https://www.space.com/feeds/all' },
+    { category: 'SCIENCE', name: 'ScienceDaily', url: 'https://www.sciencedaily.com/rss/all.xml' },
+    { category: 'SCIENCE', name: 'MIT News', url: 'https://news.mit.edu/rss/feed' },
+    { category: 'SCIENCE', name: 'Live Science', url: 'https://www.livescience.com/feeds/all' },
+    { category: 'SCIENCE', name: 'Science Friday', url: 'https://www.sciencefriday.com/feed/' },
+
+    // --- WAR ---
+    { category: 'WAR', name: 'War on the Rocks', url: 'https://warontherocks.com/feed/' },
+    { category: 'WAR', name: 'ISW', url: 'https://www.understandingwar.org/rss.xml' },
+    { category: 'WAR', name: 'Defense One', url: 'https://www.defenseone.com/rss/all/' },
+    { category: 'WAR', name: 'Breaking Defense', url: 'https://breakingdefense.com/feed/' },
+    { category: 'WAR', name: 'The Diplomat', url: 'https://thediplomat.com/feed/' },
+    { category: 'WAR', name: 'Small Wars Journal', url: 'https://smallwarsjournal.com/rss.xml' },
+    { category: 'WAR', name: 'Defense News', url: 'https://www.defensenews.com/arc/outboundfeeds/rss/' },
+    { category: 'WAR', name: 'Task & Purpose', url: 'https://taskandpurpose.com/feed/' },
+    { category: 'WAR', name: 'RealClearDefense', url: 'https://www.realcleardefense.com/index.xml' },
+
+    // --- SYSTEMS ---
+    { category: 'SYSTEMS', name: 'HeyDesigner', url: 'https://heydesigner.com/feed/' },
+    { category: 'SYSTEMS', name: 'Brad Frost', url: 'https://bradfrost.com/feed/' },
+    { category: 'SYSTEMS', name: 'CSS-Tricks', url: 'https://css-tricks.com/feed/' },
+    { category: 'SYSTEMS', name: 'Smashing Magazine', url: 'https://www.smashingmagazine.com/feed/' },
+    { category: 'SYSTEMS', name: 'A List Apart', url: 'https://alistapart.com/main/feed/' },
+
+    // --- CREATORS ---
+    { category: 'CREATORS', name: 'Creator Science', url: 'https://creatorscience.com/rss/' },
+    { category: 'CREATORS', name: 'Growth in Reverse', url: 'https://www.growthinreverse.com/rss/' },
+    { category: 'CREATORS', name: 'Substack Blog', url: 'https://blog.substack.com/feed' },
+    { category: 'CREATORS', name: 'Ghost Blog', url: 'https://ghost.org/blog/rss/' },
+
+    // --- FUTURE ---
+    { category: 'FUTURE', name: 'MIT Tech Review', url: 'https://www.technologyreview.com/feed/' },
+    { category: 'FUTURE', name: 'Singularity Hub', url: 'https://singularityhub.com/feed/' },
+    { category: 'FUTURE', name: 'Fast Company', url: 'https://www.fastcompany.com/latest/rss' },
+    { category: 'FUTURE', name: 'Aeon Magazine', url: 'https://aeon.co/feed.rss' }
+];
+
+    let newsData = [];
+    let currentCategory = null;
+    let currentViewingItem = null;
+    
+    let localCache = JSON.parse(localStorage.getItem('fluidArticlesCache')) || [];
+    let readArticles = JSON.parse(localStorage.getItem('fluidReadArticles')) || [];
+    let bookmarkedLinks = JSON.parse(localStorage.getItem('fluidBookmarks')) || [];
+    let deletedLinks = JSON.parse(localStorage.getItem('fluidDeleted')) || [];
+
+    async function fetchRSSData() {
+        try {
+            const fetchPromises = SOURCES.map(async (source) => {
+                const apiUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(source.url)}`;
+                const response = await fetch(apiUrl);
+                const data = await response.json();
+
+                if (data.status === 'ok') {
+                    return data.items.map((item) => {
+                        const parsedDate = new Date(item.pubDate.replace(/-/g, '/'));
+                        return {
+                            category: source.category,
+                            sourceName: source.name || source.category,
+                            title: item.title,
+                            pubDate: isNaN(parsedDate) ? new Date() : parsedDate,
+                            author: item.author || 'System',
+                            summary: (item.content || item.description || '').replace(/<img[^>]*>/gi, ''),
+                            thumbnail: item.thumbnail || item.enclosure?.link || extractImageFromHtml(item.content || item.description),
+                            link: item.link
+                        };
+                    });
+                }
+                return [];
+            });
+
+            const results = await Promise.all(fetchPromises);
+            const freshArticles = results.flat();
+            
+            let merged = [...freshArticles, ...localCache];
+            const uniqueMap = new Map();
+            merged.forEach(item => {
+                item.pubDate = new Date(item.pubDate); 
+                if(!uniqueMap.has(item.link)) uniqueMap.set(item.link, item);
+            });
+            
+            newsData = Array.from(uniqueMap.values())
+                .filter(item => !deletedLinks.includes(item.link))
+                .sort((a, b) => b.pubDate - a.pubDate)
+                .slice(0, 200);
+
+            localStorage.setItem('fluidArticlesCache', JSON.stringify(newsData));
+            renderList(newsData);
+
+        } catch (error) {
+            newsData = localCache.filter(item => !deletedLinks.includes(item.link));
+            if(newsData.length > 0) renderList(newsData);
+            else document.getElementById('news-container').innerHTML = '<div style="color: red; font-size: 11px;">NETWORK_ERROR: Offline.</div>';
+        }
+    }
+
+    function extractImageFromHtml(html) {
+        if (!html) return null;
+        const match = html.match(/<img[^>]+src="([^">]+)"/);
+        return match ? match[1] : null;
+    }
+
+    function toggleCategory(cat) {
+        const btns = document.querySelectorAll('.filter-btn');
+        const overlay = document.getElementById('war-overlay');
+
+        if (currentCategory === cat) {
+            currentCategory = null;
+            btns.forEach(b => b.classList.remove('active'));
+            overlay.classList.remove('active');
+            renderList(newsData); 
+            closePanel();
+        } else {
+            currentCategory = cat;
+            btns.forEach(b => {
+                if(b.innerText === cat) b.classList.add('active');
+                else b.classList.remove('active');
+            });
+
+            if (cat === 'WAR') overlay.classList.add('active');
+            else overlay.classList.remove('active');
+
+            let filtered = [];
+            if(cat === 'BOOKMARKS') {
+                filtered = newsData.filter(item => bookmarkedLinks.includes(item.link));
+            } else {
+                filtered = newsData.filter(item => item.category === cat);
+            }
+            renderList(filtered);
+            closePanel(); 
+        }
+    }
+
+    function renderList(items) {
+        const container = document.getElementById('news-container');
+        container.innerHTML = ''; 
+
+        if(items.length === 0) {
+            container.innerHTML = '<div style="font-size: 11px; color: var(--accent);">No entries found.</div>';
+            return;
+        }
+
+        items.forEach((item, index) => {
+            const div = document.createElement('div');
+            const isRead = readArticles.includes(item.link);
+            const isBookmarked = bookmarkedLinks.includes(item.link);
+            
+            div.className = `list-item ${isRead ? '' : 'unread'} ${isBookmarked ? 'bookmarked' : ''}`;
+            div.style.animationDelay = `${index * 0.02}s`; 
+            
+            const timeStr = item.pubDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
+            const dateStr = item.pubDate.toLocaleDateString('en-US', { day: '2-digit', month: '2-digit' });
+
+            div.innerHTML = `
+                <div style="display: flex; justify-content: space-between; font-size: 10px; opacity: 0.6; margin-bottom: 6px;">
+                    <span>[${item.category}] <span style="opacity:0.7;">${item.sourceName || ''}</span></span>
+                    <span>${dateStr} ${timeStr}</span>
+                </div>
+                <span class="item-title" style="line-height: 1.4; display: block; font-size: 12px;">${item.title}</span>
+            `;
+            div.onclick = (e) => showDetail(item, e.currentTarget);
+            container.appendChild(div);
+        });
+    }
+
+    function showDetail(item, element) {
+        currentViewingItem = item;
+        
+        if (!readArticles.includes(item.link)) {
+            readArticles.push(item.link);
+            localStorage.setItem('fluidReadArticles', JSON.stringify(readArticles));
+            element.classList.remove('unread');
+        }
+
+        const btnBookmark = document.getElementById('btn-bookmark');
+        if(bookmarkedLinks.includes(item.link)) {
+            btnBookmark.innerText = 'UNBOOKMARK';
+            btnBookmark.style.color = 'var(--text)';
+        } else {
+            btnBookmark.innerText = 'BOOKMARK';
+            btnBookmark.style.color = 'var(--accent)';
+        }
+
+        document.querySelectorAll('.list-item').forEach(el => el.classList.remove('active'));
+        if(element) element.classList.add('active');
+
+        const contentArea = document.getElementById('content-area');
+        const innerContent = document.getElementById('inner-content');
+        const isAlreadyVisible = contentArea.classList.contains('visible');
+
+        document.getElementById('placeholder').style.opacity = '0';
+
+        const populateData = () => {
+            const dateStr = item.pubDate.toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' });
+            document.getElementById('view-meta').innerText = `${dateStr} // ${item.author}`;
+            document.getElementById('view-title').innerText = item.title;
+            
+            const imgEl = document.getElementById('view-image');
+            if (item.thumbnail) {
+                imgEl.src = item.thumbnail;
+                imgEl.style.display = 'block';
+            } else {
+                imgEl.style.display = 'none';
+            }
+
+            document.getElementById('view-summary').innerHTML = item.summary;
+            document.getElementById('view-link').href = item.link;
+            contentArea.scrollTop = 0;
+        };
+
+        if (isAlreadyVisible) {
+            innerContent.classList.add('fade-out');
+            setTimeout(() => {
+                populateData();
+                innerContent.classList.remove('fade-out');
+            }, 300);
+        } else {
+            populateData();
+            contentArea.classList.add('visible');
+        }
+    }
+
+    function toggleBookmarkCurrent() {
+        if(!currentViewingItem) return;
+        const link = currentViewingItem.link;
+        const btnBookmark = document.getElementById('btn-bookmark');
+        
+        if(bookmarkedLinks.includes(link)) {
+            bookmarkedLinks = bookmarkedLinks.filter(l => l !== link);
+            btnBookmark.innerText = 'BOOKMARK';
+            btnBookmark.style.color = 'var(--accent)';
+        } else {
+            bookmarkedLinks.push(link);
+            btnBookmark.innerText = 'UNBOOKMARK';
+            btnBookmark.style.color = 'var(--text)';
+        }
+        localStorage.setItem('fluidBookmarks', JSON.stringify(bookmarkedLinks));
+        
+        if(currentCategory === 'BOOKMARKS') toggleCategory('BOOKMARKS'); 
+        else renderList(currentCategory ? newsData.filter(i => i.category === currentCategory) : newsData);
+        
+        const activeLinkEl = Array.from(document.querySelectorAll('.list-item')).find(el => el.innerHTML.includes(currentViewingItem.title));
+        if(activeLinkEl) activeLinkEl.classList.add('active');
+    }
+
+    function deleteCurrent() {
+        if(!currentViewingItem) return;
+        deletedLinks.push(currentViewingItem.link);
+        localStorage.setItem('fluidDeleted', JSON.stringify(deletedLinks));
+        
+        newsData = newsData.filter(i => i.link !== currentViewingItem.link);
+        closePanel();
+        
+        let filtered = [];
+        if(currentCategory === 'BOOKMARKS') filtered = newsData.filter(item => bookmarkedLinks.includes(item.link));
+        else if(currentCategory) filtered = newsData.filter(item => item.category === currentCategory);
+        else filtered = newsData;
+        
+        renderList(filtered);
+    }
+
+    function closePanel() {
+        currentViewingItem = null;
+        document.getElementById('placeholder').style.opacity = '1';
+        document.getElementById('content-area').classList.remove('visible');
+        document.querySelectorAll('.list-item').forEach(el => el.classList.remove('active'));
+    }
+
+    function updateClock() {
+        const now = new Date();
+        document.getElementById('live-clock').innerText = now.toLocaleString('en-US', {
+            month: '2-digit', day: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false
+        }).replace(',', '') + ' SYNC_ACTIVE';
+    }
+    
+    setInterval(updateClock, 1000);
+    updateClock();
+    fetchRSSData();
+</script>
+</body>
+</html>

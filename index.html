@@ -216,8 +216,10 @@
         #theme-toggle {
             position: fixed; bottom: 30px; right: 30px; z-index: 100;
             background: var(--card-bg); border: 1px solid var(--border); color: var(--text);
-            padding: 8px 16px; border-radius: 30px; font-family: inherit; font-size: 10px;
-            cursor: pointer; backdrop-filter: blur(10px); transition: all 0.3s ease; text-transform: uppercase;
+            width: 36px; height: 36px; border-radius: 50%; font-family: inherit; font-size: 15px;
+            cursor: pointer; backdrop-filter: blur(10px); transition: all 0.3s ease;
+            display: flex; align-items: center; justify-content: center; font-weight: 500;
+            padding: 0;
         }
         #theme-toggle:hover { background: var(--text); color: var(--bg); }
 
@@ -319,8 +321,8 @@
             /* Tighter list items on mobile */
             .list-item { padding: 12px 14px 12px 22px; }
             
-            /* Hide desktop theme toggle on mobile, use nav bar one */
-            #theme-toggle { bottom: 72px; right: 16px; font-size: 9px; padding: 6px 12px; }
+            /* Hide desktop theme toggle completely on mobile */
+            #theme-toggle { display: none; }
             
             h2 { font-size: 1.1rem; }
             
@@ -407,13 +409,13 @@
     </div>
 </main>
 
-<button id="theme-toggle" onclick="toggleTheme()">DARK MODE</button>
+<button id="theme-toggle" onclick="toggleTheme()">O</button>
 
 <script>
     // --- THEME INIT ---
     if(localStorage.getItem('fluidTheme') === 'dark') {
         document.body.setAttribute('data-theme', 'dark');
-        document.getElementById('theme-toggle').innerText = 'LIGHT MODE';
+        document.getElementById('theme-toggle').innerText = 'I';
     }
 
     function toggleTheme() {
@@ -421,13 +423,33 @@
         const btn = document.getElementById('theme-toggle');
         if(body.getAttribute('data-theme') === 'dark') {
             body.removeAttribute('data-theme');
-            btn.innerText = 'DARK MODE';
+            btn.innerText = 'O';
             localStorage.setItem('fluidTheme', 'light');
         } else {
             body.setAttribute('data-theme', 'dark');
-            btn.innerText = 'LIGHT MODE';
+            btn.innerText = 'I';
             localStorage.setItem('fluidTheme', 'dark');
         }
+    }
+
+    // --- MOBILE HELPERS ---
+    const isMobile = () => window.innerWidth <= 768;
+
+    function mobileShowList() {
+        document.getElementById('aside-panel').classList.remove('mob-hidden');
+        document.getElementById('main-panel').classList.remove('mob-visible');
+        document.getElementById('mob-list-btn').classList.add('active');
+        document.getElementById('mob-article-btn').classList.remove('active');
+    }
+
+    function mobileShowArticle() {
+        const mobArticleBtn = document.getElementById('mob-article-btn');
+        mobArticleBtn.disabled = false;
+        mobArticleBtn.style.opacity = '1';
+        document.getElementById('aside-panel').classList.add('mob-hidden');
+        document.getElementById('main-panel').classList.add('mob-visible');
+        document.getElementById('mob-list-btn').classList.remove('active');
+        mobArticleBtn.classList.add('active');
     }
 
     // --- RSS LOGIC ---
@@ -630,7 +652,7 @@
                 </div>
                 <span class="item-title" style="line-height: 1.4; display: block; font-size: 12px;">${item.title}</span>
             `;
-            div.onclick = (e) => showDetail(item, e.currentTarget);
+            div.onclick = () => showDetail(item, div);
             container.appendChild(div);
         });
     }
@@ -690,6 +712,11 @@
             populateData();
             contentArea.classList.add('visible');
         }
+
+        // Mobile: slide to article view
+        if (isMobile()) {
+            setTimeout(() => mobileShowArticle(), 50);
+        }
     }
 
     function toggleBookmarkCurrent() {
@@ -736,6 +763,8 @@
         document.getElementById('placeholder').style.opacity = '1';
         document.getElementById('content-area').classList.remove('visible');
         document.querySelectorAll('.list-item').forEach(el => el.classList.remove('active'));
+        // Mobile: go back to list
+        if (isMobile()) mobileShowList();
     }
 
     function updateClock() {
@@ -748,44 +777,6 @@
     setInterval(updateClock, 1000);
     updateClock();
     fetchRSSData();
-
-    // --- MOBILE NAV ---
-    const isMobile = () => window.innerWidth <= 768;
-
-    function mobileShowList() {
-        if (!isMobile()) return;
-        document.getElementById('aside-panel').classList.remove('mob-hidden');
-        document.getElementById('main-panel').classList.remove('mob-visible');
-        document.getElementById('mob-list-btn').classList.add('active');
-        document.getElementById('mob-article-btn').classList.remove('active');
-    }
-
-    function mobileShowArticle() {
-        if (!isMobile()) return;
-        document.getElementById('aside-panel').classList.add('mob-hidden');
-        document.getElementById('main-panel').classList.add('mob-visible');
-        document.getElementById('mob-list-btn').classList.remove('active');
-        document.getElementById('mob-article-btn').classList.add('active');
-    }
-
-    // Override showDetail to auto-navigate to article on mobile
-    const _origShowDetail = showDetail;
-    function showDetail(item, element) {
-        _origShowDetail(item, element);
-        if (isMobile()) {
-            const mobArticleBtn = document.getElementById('mob-article-btn');
-            mobArticleBtn.disabled = false;
-            mobArticleBtn.style.opacity = '1';
-            setTimeout(() => mobileShowArticle(), 50);
-        }
-    }
-
-    // Override closePanel to go back to list on mobile
-    const _origClosePanel = closePanel;
-    function closePanel() {
-        _origClosePanel();
-        if (isMobile()) mobileShowList();
-    }
 </script>
 </body>
 </html>
